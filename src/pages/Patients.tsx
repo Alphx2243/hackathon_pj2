@@ -1,175 +1,107 @@
 import React, { useState } from 'react';
-import { Search, Filter, Plus, MoreVertical, User, Phone, MapPin, Calendar, Activity } from 'lucide-react';
-import { Patient } from '../types';
+import { Search, Plus, MoreVertical, User, Phone, MapPin, Activity, ClipboardList, Calendar, Edit, Trash2, FilePlus } from 'lucide-react';
 
-const Patients: React.FC = () => {
-  // Mock data - In production, this would come from your backend
-  const mockPatients: Patient[] = [
-    {
-      id: '1',
-      userId: 'user1',
-      dateOfBirth: new Date('1990-05-15'),
-      gender: 'female',
-      bloodGroup: 'A+',
-      address: '123 Main St, Boston, MA 02108',
-      phone: '(617) 555-0123',
-      medicalHistory: ['Hypertension', 'Diabetes']
-    },
-    {
-      id: '2',
-      userId: 'user2',
-      dateOfBirth: new Date('1985-08-22'),
-      gender: 'male',
-      bloodGroup: 'O-',
-      address: '456 Park Ave, Boston, MA 02109',
-      phone: '(617) 555-0124',
-      medicalHistory: ['Asthma']
-    },
-    {
-      id: '3',
-      userId: 'user3',
-      dateOfBirth: new Date('1978-03-10'),
-      gender: 'female',
-      bloodGroup: 'B+',
-      address: '789 Oak St, Boston, MA 02110',
-      phone: '(617) 555-0125',
-      medicalHistory: ['Arthritis', 'High Cholesterol']
-    }
-  ];
+const Patients = () => {
+  const [patients, setPatients] = useState([
+    { id: '1', name: 'John Doe', dateOfBirth: '1990-05-15', gender: 'Male', bloodGroup: 'A+', address: '123 Main St, Boston', phone: '(617) 555-0123', emergencyContact: '(617) 555-9999', medicalHistory: ['Hypertension', 'Diabetes'], prescriptions: ['Metformin 500mg'], upcomingAppointments: ['2025-04-10'] },
+    { id: '2', name: 'Alice Smith', dateOfBirth: '1985-07-21', gender: 'Female', bloodGroup: 'O-', address: '456 Park Ave, Boston', phone: '(617) 555-9876', emergencyContact: '(617) 555-8888', medicalHistory: ['Asthma'], prescriptions: ['Inhaler'], upcomingAppointments: ['2025-04-12'] },
+    { id: '3', name: 'Jordan Lee', dateOfBirth: '1995-09-10', gender: 'Other', bloodGroup: 'B+', address: '789 Elm St, Boston', phone: '(617) 555-6543', emergencyContact: '(617) 555-7777', medicalHistory: ['Allergy'], prescriptions: ['Cetirizine'], upcomingAppointments: ['2025-04-15'] }
+  ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  const filteredPatients = mockPatients.filter(patient => {
-    const matchesSearch = patient.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.phone.includes(searchTerm) ||
-                         patient.address.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (selectedFilter === 'all') return matchesSearch;
-    return matchesSearch && patient.gender === selectedFilter;
+  const filteredPatients = patients.filter(patient => {
+    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || patient.phone.includes(searchTerm);
+    return selectedFilter === 'all' ? matchesSearch : matchesSearch && patient.gender.toLowerCase() === selectedFilter;
   });
 
-  const calculateAge = (birthDate: Date) => {
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Patients</h1>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Patient
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Patients</h1>
+        <button onClick={() => setShowAddForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+          <Plus className="mr-2" /> Add Patient
         </button>
       </div>
 
-      <div className="bg-white shadow rounded-lg">
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="flex-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Search patients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex-shrink-0">
-              <div className="relative inline-block text-left">
-                <select
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  value={selectedFilter}
-                  onChange={(e) => setSelectedFilter(e.target.value)}
-                >
-                  <option value="all">All Patients</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flow-root">
-            <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead>
-                    <tr>
-                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                        Patient
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Contact
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Medical Info
-                      </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredPatients.map((patient) => (
-                      <tr key={patient.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 flex-shrink-0">
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <User className="h-5 w-5 text-gray-500" />
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="font-medium text-gray-900">{patient.userId}</div>
-                              <div className="text-gray-500">
-                                {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}, {calculateAge(patient.dateOfBirth)} years
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Phone className="h-4 w-4 mr-2" />
-                            {patient.phone}
-                          </div>
-                          <div className="flex items-center mt-1">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            {patient.address}
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Activity className="h-4 w-4 mr-2" />
-                            Blood Type: {patient.bloodGroup}
-                          </div>
-                          <div className="mt-1">
-                            {patient.medicalHistory.join(', ')}
-                          </div>
-                        </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <button className="text-blue-600 hover:text-blue-900">
-                            <MoreVertical className="h-5 w-5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+      {showAddForm && (
+        <div className="bg-gray-100 p-4 rounded mb-4">
+          <h2 className="text-lg font-semibold mb-2">Add New Patient</h2>
+          <form className="grid grid-cols-2 gap-4">
+            <input type="text" placeholder="Full Name" className="border p-2 rounded" />
+            <input type="date" placeholder="DOB" className="border p-2 rounded" />
+            <select className="border p-2 rounded">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="text" placeholder="Blood Group" className="border p-2 rounded" />
+            <input type="text" placeholder="Address" className="border p-2 rounded" />
+            <input type="text" placeholder="Phone" className="border p-2 rounded" />
+            <input type="text" placeholder="Emergency Contact" className="border p-2 rounded" />
+            <input type="text" placeholder="Medical History" className="border p-2 rounded" />
+            <input type="text" placeholder="Prescriptions" className="border p-2 rounded" />
+            <input type="date" placeholder="Appointment Date" className="border p-2 rounded" />
+            <button className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+            <button onClick={() => setShowAddForm(false)} className="bg-red-600 text-white px-4 py-2 rounded">Cancel</button>
+          </form>
         </div>
+      )}
+
+      <div className="flex gap-4 mb-4">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-2.5 text-gray-400" />
+          <input type="text" className="pl-10 pr-4 py-2 border rounded w-full" placeholder="Search patients..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        </div>
+        <select className="border rounded px-3 py-2" value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)}>
+          <option value="all">All</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 text-left">Patient</th>
+              <th className="p-3 text-left">Contact</th>
+              <th className="p-3 text-left">Medical Info</th>
+              <th className="p-3 text-left">Prescriptions</th>
+              <th className="p-3 text-left">Appointments</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPatients.map(patient => (
+              <tr key={patient.id} className="border-b">
+                <td className="p-3">
+                  <User className="mr-2 text-gray-600" /> {patient.name}, {patient.gender}, {patient.bloodGroup}
+                </td>
+                <td className="p-3">
+                  <Phone className="mr-2 text-gray-600" /> {patient.phone}
+                </td>
+                <td className="p-3">
+                  <Activity className="mr-2 text-gray-600" /> {patient.medicalHistory.join(', ')}
+                </td>
+                <td className="p-3">
+                  <ClipboardList className="mr-2 text-gray-600" /> {patient.prescriptions.join(', ')}
+                </td>
+                <td className="p-3">
+                  <Calendar className="mr-2 text-gray-600" /> {patient.upcomingAppointments.join(', ')}
+                </td>
+                <td className="p-3 flex gap-2">
+                  <button className="text-yellow-500 hover:text-yellow-700"><Edit /></button>
+                  <button className="text-blue-500 hover:text-blue-700"><FilePlus /></button>
+                  <button className="text-red-500 hover:text-red-700"><Trash2 /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
